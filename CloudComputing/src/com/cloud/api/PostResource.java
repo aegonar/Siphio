@@ -16,12 +16,16 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.Random;
+
 //import java.util.ArrayList;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -139,6 +143,8 @@ public class PostResource {
         	  
       System.out.println("["+currentUser.getUserName()+"] [POST] /post");
       
+      System.out.println(post);
+      
       	ObjectMapper mapper = new ObjectMapper();
 		Post postFromJSON = null;
 			
@@ -149,6 +155,8 @@ public class PostResource {
 			return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Invalid input").build();
 		}
       
+		int postID=0;
+		
 		  String DataSourceName = "jdbc/MySQLDataSource";
 		  DataSource ds;
 		  Connection con = null;
@@ -159,14 +167,46 @@ public class PostResource {
 				con = ds.getConnection();
 							
 			PreparedStatement ps_query_setPost=null;
+			PreparedStatement ps_query_getCallback=null;
+			ResultSet rs_query_getCallback=null;
+			PreparedStatement ps_query_clearCallback=null;
 	 		
 		    try{    
-				String query_setPost = "INSERT INTO Post (`UserID`,`PostMessage`,`PostLink`) VALUES (?,?,?);";				
+				String query_setPost = "INSERT INTO Post (`UserID`,`PostMessage`,`PostLink`, `Callback`) VALUES (?,?,?,?);";				
 				ps_query_setPost = con.prepareStatement(query_setPost);
 				ps_query_setPost.setInt(1, userID);
 				ps_query_setPost.setString(2, postFromJSON.getPostMessage());
 				ps_query_setPost.setString(3, postFromJSON.getPostLink());
+				
+			    Random random = new SecureRandom();
+			    String callback = new BigInteger(130, random).toString(32).substring(0,16);
+			    ps_query_setPost.setString(4, callback);
+				
 				ps_query_setPost.executeUpdate();
+				
+	  		    //-------------
+    	    	
+		    	String query_getCallback = "Select PostID from Post where UserID=? AND Callback=?";	    	
+		    	ps_query_getCallback = con.prepareStatement(query_getCallback);
+		    	ps_query_getCallback.setInt(1, userID);	
+		    	ps_query_getCallback.setString(2, callback);
+		    	rs_query_getCallback = ps_query_getCallback.executeQuery();
+			    
+			    rs_query_getCallback.next();
+			    
+			    try{		    	
+			    	postID = rs_query_getCallback.getInt("PostID");
+			    }catch (Exception e){
+			    	return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("Error Saving Post: Callback").build();
+			    }
+			    
+			    //-------------
+			    
+		    	String query_clearCallback = "UPDATE Post SET `Callback`=null, `Datetime`=`Datetime` where UserID=? AND PostID=?;";	    	
+		    	ps_query_clearCallback = con.prepareStatement(query_clearCallback);
+		    	ps_query_clearCallback.setInt(1, userID);
+		    	ps_query_clearCallback.setInt(2, postID);
+		    	ps_query_clearCallback.executeUpdate();
 					
 			}catch(Exception e){
 				System.out.println("Error: " + e.getMessage());
@@ -196,7 +236,8 @@ public class PostResource {
 		      }
 		  }
 				
-	return Response.status(Response.Status.OK).build();
+//	return Response.status(Response.Status.OK).build();
+		  return Response.ok("{\"postID\":"+postID+"}", MediaType.APPLICATION_JSON).build();
   
   }
 } 

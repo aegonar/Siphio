@@ -375,6 +375,12 @@ public class ProfileResource {
 			
 			PreparedStatement ps_query_session=null;
 			ResultSet rs_query_session=null;
+			PreparedStatement ps_query_getFollow=null;
+			ResultSet rs_query_getFollow=null;
+			PreparedStatement ps_query_getFollowing=null;
+			ResultSet rs_query_getFollowing=null;
+			PreparedStatement ps_query_getFollower=null;
+			ResultSet rs_query_getFollower=null;
 			try{
 				String query_session = "SELECT `User`.`UserID`, `UserName`, `Name`, "
 						+ "`LastName`, `Email`, `About` "
@@ -396,6 +402,36 @@ public class ProfileResource {
 					user.setEmail(rs_query_session.getString("Email"));
 					user.setAbout(rs_query_session.getString("About"));
 				}
+				
+				ps_query_getFollow = con.prepareStatement("SELECT * from Following where UserID=? AND FollowingUserID=?;");
+		    	ps_query_getFollow.setInt(1, UserID);
+		    	ps_query_getFollow.setInt(2, ProfileID);
+		    	rs_query_getFollow = ps_query_getFollow.executeQuery();
+		    	
+		    	rs_query_getFollow.next();
+		    	try{
+		    		rs_query_getFollow.getInt("FollowingID");
+		    		System.out.println("Follow found");
+		    		user.setFollow(1);
+		    	}catch (Exception e){
+		    		System.out.println("Follow not found");
+		    		user.setFollow(0);
+		    	}
+		    	
+				ps_query_getFollowing = con.prepareStatement("SELECT count(*) as total from Following where UserID=?;");
+				ps_query_getFollowing.setInt(1, ProfileID);
+		    	rs_query_getFollowing = ps_query_getFollowing.executeQuery();
+		    	
+		    	rs_query_getFollowing.next();
+		    	user.setFollowing(rs_query_getFollowing.getInt("total"));
+				
+				ps_query_getFollower = con.prepareStatement("SELECT count(*) as total from Following where FollowingUserID=?;");
+				ps_query_getFollower.setInt(1, ProfileID);;
+				rs_query_getFollower = ps_query_getFollower.executeQuery();
+		    	
+				rs_query_getFollower.next();
+				user.setFollower(rs_query_getFollower.getInt("total"));
+				
 			}catch(Exception e){
 				System.out.println("Error at rs_query_session: " + e.getMessage());		
 				throw new NotAuthorizedException("Invalid session token");
@@ -406,6 +442,24 @@ public class ProfileResource {
 			          }
 			          if (rs_query_session != null) {
 			        	  rs_query_session.close();
+			          }
+			          if (ps_query_getFollow != null) {
+			        	  ps_query_getFollow.close();
+			          }
+			          if (rs_query_getFollow != null) {
+			        	  rs_query_getFollow.close();
+			          }
+			          if (ps_query_getFollowing != null) {
+			        	  ps_query_getFollowing.close();
+			          }
+			          if (rs_query_getFollowing != null) {
+			        	  rs_query_getFollowing.close();
+			          }
+			          if (rs_query_getFollower != null) {
+			        	  rs_query_getFollower.close();
+			          }
+			          if (rs_query_getFollower != null) {
+			        	  rs_query_getFollower.close();
 			          }
 			      } catch (SQLException sqle) {
 				      System.out.println(sqle);
