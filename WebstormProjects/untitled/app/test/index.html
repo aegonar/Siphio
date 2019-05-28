@@ -1,0 +1,90 @@
+<!doctype html>
+
+
+<html ng-app="demo">
+<head>
+  <title>Hello AngularJS</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.3/angular.min.js"></script>
+  <script src="hello.js"></script>
+</head>
+
+<body>
+
+<div ng-controller="Thread">
+  <p>The postID is {{post.postID}}</p>
+  <p>The postMessage is {{post.postMessage}}</p>
+
+  <p>The postLink is <a href='{{post.postLink}}'>{{post.postLink}}</a></p>
+
+  <p>The dateTime is <div class='time'>{{post.dateTime}}</div></p>
+
+  <p>The favoriteCount is {{post.favoriteCount}}</p>
+  <p>The replyCount is {{post.replyCount}}</p>
+
+  <p>The userID is {{post.userID}}</p>
+  <p>The userName is {{post.userName}}</p>
+  <p>The name is {{post.name}}</p>
+  <p>The lastname is {{post.lastname}}</p>
+
+  <br>
+
+    <div ng-repeat="reply in replies">
+
+      <p>The replyID is {{reply.replyID}}</p>
+      <p>The replyMessage is {{reply.replyMessage}}</p>
+
+      <p>The dateTime is <div class='time'>{{reply.dateTime}}</div></p>
+
+      <p>The voteCount is {{reply.voteCount}}</p>
+
+      <p>The userID is {{reply.userID}}</p>
+      <p>The userName is {{reply.userName}}</p>
+      <p>The name is {{reply.name}}</p>
+      <p>The lastname is {{reply.lastname}}</p>
+
+      <br>
+    </div>
+
+</div>
+
+<div ng-controller="More">
+  <!-- call $scope.search() when submit is clicked. -->
+    <div ng-repeat="reply in replies">
+
+    <p>The replyID is {{reply.replyID}}</p>
+    <p>The replyMessage is {{reply.replyMessage}}</p>
+
+    <p>The dateTime is <div class='time'>{{reply.dateTime}}</div></p>
+
+    <p>The voteCount is {{reply.voteCount}}</p>
+
+    <p>The userID is {{reply.userID}}</p>
+    <p>The userName is {{reply.userName}}</p>
+    <p>The name is {{reply.name}}</p>
+    <p>The lastname is {{reply.lastname}}</p>
+
+        <p>The vote is {{reply.vote}}</p>
+
+        <p>The upvote is {{reply.upvote}}</p>
+        <p>The downvote is {{reply.downvote}}</p>
+        <p>The voteTotal is {{reply.voteTotal}}</p>
+
+        <form ng-submit="More">
+            <button ng-click="upvote(reply.replyID);">upvote</button>
+            <button ng-click="downvote(reply.replyID);">downvote</button>
+        </form>
+
+    <br>
+    </div>
+
+  <form ng-submit="load()">
+    <input type="submit" value="Load">
+  </form>
+</div>
+
+<div ng-controller="CurrentUser">
+  <p>Current user is  {{user.userName}}</p>
+</div>
+
+</body>
+</html>
